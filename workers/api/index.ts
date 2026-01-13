@@ -27,9 +27,10 @@ export default {
       // Parse URL
       const url = new URL(request.url);
       const pathname = url.pathname;
+      const method = request.method;
 
       // Match route
-      const route = matchRoute(pathname);
+      const route = matchRoute(pathname, method);
       if (!route) {
         return errorResponse('Not Found', 404);
       }

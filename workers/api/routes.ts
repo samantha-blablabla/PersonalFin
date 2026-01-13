@@ -3,11 +3,14 @@
  * Maps URL patterns to handlers
  */
 
-import { errorResponse } from './middleware/errorHandler';
+import { errorResponse, successResponse } from './middleware/errorHandler';
+import * as sharkTracker from '../handlers/sharkTracker';
+import * as investments from '../handlers/investments';
 
 export interface Route {
   pattern: RegExp;
   handler: (request: Request, env: any, params: Record<string, string>) => Promise<Response>;
+  method?: string;
 }
 
 export const routes: Route[] = [
@@ -15,15 +18,15 @@ export const routes: Route[] = [
   {
     pattern: /^\/$/,
     handler: async () => {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: 'FinTrack Pro VN API',
-          version: '1.0.0',
-          timestamp: new Date().toISOString(),
-        }),
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+      return successResponse({
+        message: 'FinTrack Pro VN API',
+        version: '1.0.0',
+        endpoints: {
+          health: '/health',
+          investments: '/api/investments',
+          sharkTracker: '/api/shark-tracker/*',
+        },
+      });
     },
   },
 
@@ -31,72 +34,68 @@ export const routes: Route[] = [
   {
     pattern: /^\/health$/,
     handler: async () => {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          status: 'healthy',
-          timestamp: new Date().toISOString(),
-        }),
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+      return successResponse({ status: 'healthy' });
     },
   },
 
-  // Transactions endpoints (placeholder)
-  {
-    pattern: /^\/api\/transactions$/,
-    handler: async (request) => {
-      if (request.method === 'GET') {
-        return new Response(
-          JSON.stringify({
-            success: true,
-            data: [],
-            message: 'Transactions endpoint - Coming soon',
-          }),
-          { headers: { 'Content-Type': 'application/json' } }
-        );
-      }
-      return errorResponse('Method not allowed', 405);
-    },
-  },
+  // ============================================================================
+  // INVESTMENTS ENDPOINTS
+  // ============================================================================
 
-  // Investments endpoints (placeholder)
   {
     pattern: /^\/api\/investments$/,
-    handler: async (request) => {
-      if (request.method === 'GET') {
-        return new Response(
-          JSON.stringify({
-            success: true,
-            data: [],
-            message: 'Investments endpoint - Coming soon',
-          }),
-          { headers: { 'Content-Type': 'application/json' } }
-        );
-      }
-      return errorResponse('Method not allowed', 405);
-    },
+    method: 'GET',
+    handler: investments.getInvestments,
   },
 
-  // Shark Tracker endpoints (placeholder)
+  {
+    pattern: /^\/api\/investments$/,
+    method: 'POST',
+    handler: investments.createInvestment,
+  },
+
+  {
+    pattern: /^\/api\/investments\/profit-check$/,
+    method: 'GET',
+    handler: investments.profitCheck,
+  },
+
+  // ============================================================================
+  // SHARK TRACKER ENDPOINTS
+  // ============================================================================
+
   {
     pattern: /^\/api\/shark-tracker\/signals$/,
-    handler: async () => {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: [],
-          message: 'Shark Tracker endpoint - Coming soon',
-        }),
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-    },
+    method: 'GET',
+    handler: sharkTracker.getSharkSignals,
+  },
+
+  {
+    pattern: /^\/api\/shark-tracker\/analyze\/(?<symbol>[A-Z]{3})$/,
+    method: 'GET',
+    handler: sharkTracker.analyzeSymbol,
+  },
+
+  {
+    pattern: /^\/api\/shark-tracker\/batch-analyze$/,
+    method: 'POST',
+    handler: sharkTracker.batchAnalyze,
+  },
+
+  {
+    pattern: /^\/api\/shark-tracker\/dashboard$/,
+    method: 'GET',
+    handler: sharkTracker.getDashboard,
   },
 ];
 
-export function matchRoute(pathname: string): Route | null {
+export function matchRoute(pathname: string, method: string): Route | null {
   for (const route of routes) {
     if (route.pattern.test(pathname)) {
+      // If route specifies method, check it matches
+      if (route.method && route.method !== method) {
+        continue;
+      }
       return route;
     }
   }
