@@ -6,6 +6,9 @@
 import { errorResponse, successResponse } from './middleware/errorHandler';
 import * as sharkTracker from '../handlers/sharkTracker';
 import * as investments from '../handlers/investments';
+import * as transactions from '../handlers/transactions';
+import * as goals from '../handlers/goals';
+import * as watchlist from '../handlers/watchlist';
 
 export interface Route {
   pattern: RegExp;
@@ -24,6 +27,9 @@ export const routes: Route[] = [
         endpoints: {
           health: '/health',
           investments: '/api/investments',
+          transactions: '/api/transactions',
+          goals: '/api/goals',
+          watchlist: '/api/watchlist',
           sharkTracker: '/api/shark-tracker/*',
         },
       });
@@ -86,6 +92,102 @@ export const routes: Route[] = [
     pattern: /^\/api\/shark-tracker\/dashboard$/,
     method: 'GET',
     handler: sharkTracker.getDashboard,
+  },
+
+  // ============================================================================
+  // TRANSACTIONS ENDPOINTS
+  // ============================================================================
+
+  {
+    pattern: /^\/api\/transactions$/,
+    method: 'GET',
+    handler: transactions.getTransactions,
+  },
+
+  {
+    pattern: /^\/api\/transactions$/,
+    method: 'POST',
+    handler: transactions.createTransaction,
+  },
+
+  {
+    pattern: /^\/api\/transactions\/summary$/,
+    method: 'GET',
+    handler: transactions.getTransactionSummary,
+  },
+
+  {
+    pattern: /^\/api\/transactions\/(?<id>[^\/]+)$/,
+    method: 'DELETE',
+    handler: transactions.deleteTransaction,
+  },
+
+  // ============================================================================
+  // GOALS ENDPOINTS
+  // ============================================================================
+
+  {
+    pattern: /^\/api\/goals$/,
+    method: 'GET',
+    handler: goals.getGoals,
+  },
+
+  {
+    pattern: /^\/api\/goals$/,
+    method: 'POST',
+    handler: goals.createGoal,
+  },
+
+  {
+    pattern: /^\/api\/goals\/summary$/,
+    method: 'GET',
+    handler: goals.getGoalsSummary,
+  },
+
+  {
+    pattern: /^\/api\/goals\/(?<id>[^\/]+)$/,
+    method: 'PUT',
+    handler: goals.updateGoal,
+  },
+
+  {
+    pattern: /^\/api\/goals\/(?<id>[^\/]+)$/,
+    method: 'DELETE',
+    handler: goals.deleteGoal,
+  },
+
+  // ============================================================================
+  // WATCHLIST ENDPOINTS
+  // ============================================================================
+
+  {
+    pattern: /^\/api\/watchlist$/,
+    method: 'GET',
+    handler: watchlist.getWatchlist,
+  },
+
+  {
+    pattern: /^\/api\/watchlist$/,
+    method: 'POST',
+    handler: watchlist.addToWatchlist,
+  },
+
+  {
+    pattern: /^\/api\/watchlist\/alerts$/,
+    method: 'GET',
+    handler: watchlist.getWatchlistAlerts,
+  },
+
+  {
+    pattern: /^\/api\/watchlist\/(?<id>[^\/]+)$/,
+    method: 'PUT',
+    handler: watchlist.updateWatchlistItem,
+  },
+
+  {
+    pattern: /^\/api\/watchlist\/(?<id>[^\/]+)$/,
+    method: 'DELETE',
+    handler: watchlist.removeFromWatchlist,
   },
 ];
 
